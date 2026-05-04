@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einkaufsliste Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#28a745">
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; max-width: 600px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .row { display: flex; gap: 5px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; flex: 1; }
+        button { cursor: pointer; padding: 12px; border: none; border-radius: 4px; transition: 0.2s; font-weight: bold; }
+        .btn-add { background: #28a745; color: white; width: 100%; }
+        .btn-share { background: #25D366; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
+        .btn-save { background: #007bff; color: white; margin-top: 10px; width: 100%; }
+        .btn-load { background: #6c757d; color: white; display: block; padding: 12px; border-radius: 4px; cursor: pointer; text-align: center; margin-top: 10px; }
+        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #eee; padding: 12px 0; }
+        .shop-header { background: #e9ecef; padding: 8px 10px; font-weight: bold; margin-top: 15px; border-radius: 4px; color: #444; }
+        .actions button { font-size: 14px; margin-left: 5px; padding: 5px 10px; }
+        .delete { background: #dc3545; color: white; }
+        .edit { background: #ffc107; color: black; }
+        hr { margin: 25px 0; border: 0; border-top: 2px dashed #eee; }
+        .storage-section { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🛒 Meine Einkaufsliste</h2>
+    
+    <div class="input-group">
+        <input type="text" id="item" placeholder="Produkt (z.B. Magerquark)">
+        <div class="row">
+            <input type="text" id="amount" placeholder="Menge" style="width: 30%;">
+            <select id="shop">
+                <option value="Aldi">Aldi</option>
+                <option value="Rewe">Rewe</option>
+                <option value="Edeka">Edeka</option>
+                <option value="Rossmann">Rossmann</option>
+                <option value="Metzger">Metzger</option>
+                <option value="Bio-Markt">Bio-Markt</option>
+                <option value="Sonstiges">Sonstiges</option>
+            </select>
+        </div>
+        <button class="btn-add" onclick="addItem()">Hinzufügen</button>
+    </div>
+
+    <div id="list-container"></div>
+
+    <button class="btn-share" onclick="shareList()">📤 Liste teilen (WhatsApp/Text)</button>
+
+    <hr>
+
+    <div class="storage-section">
+        <h3 style="margin-top: 0;">💾 Liste Verwalten</h3>
+        <button class="btn-save" onclick="exportData()">Export als Datei</button>
+        <label for="importFile" class="btn-load">Import aus Datei</label>
+        <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+    </div>
+</div>
+
+<script>
+    let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
+
+    // Service Worker Registrierung
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW aktiv'))
+                .catch(err => console.log('SW Fehler', err));
+        });
+    }
+
+    function saveToBrowser() {
+        localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
+        render();
+    }
+
+    function addItem() {
+        const nameInput = document.getElementById('item');
+        const amountInput = document.getElementById('amount');
+        const shopSelect = document.getElementById('shop');
+        if (!nameInput.value) return;
+
+        shoppingList.push({ 
+            id: Date.now(), 
+            name: nameInput.value, 
+            amount: amountInput.value, 
+            shop: shopSelect.value 
+        });
+
+        nameInput.value = '';
+        amountInput.value = '';
+        saveToBrowser();
+    }
+
+    function deleteItem(id) {
+        if(confirm("Löschen?")) {
+            shoppingList = shoppingList.filter(item => item.id !== id);
+            saveToBrowser();
+        }
+    }
+
+    function editItem(id) {
+        const item = shoppingList.find(i => i.id === id);
+        const newName = prompt("Produkt:", item.name);
+        const newAmount = prompt("Menge:", item.amount);
+        const newShop = prompt("Geschäft:", item.shop);
+        
+        if (newName !== null) {
+            item.name = newName;
+            item.amount = newAmount;
+            item.shop = newShop;
+            saveToBrowser();
+        }
+    }
+
+    function shareList() {
+        if (shoppingList.length === 0) return alert("Leer!");
+        let text = "🛒 *Meine Einkaufsliste*\n\n";
+        const grouped = shoppingList.reduce((acc, item) => {
+            if (!acc[item.shop]) acc[item.shop] = [];
+            acc[item.shop].push(item);
+            return acc;
+        }, {});
+
+        for (const shop in grouped) {
+            text += `*${shop.toUpperCase()}*\n`;
+            grouped[shop].forEach(item => {
+                text += `- ${item.amount ? item.amount + ' ' : ''}${item.name}\n`;
+            });
+            text += "\n";
+        }
+
+        if (navigator.share) {
+            navigator.share({ title: 'Einkauf', text: text });
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Kopiert!");
+        }
+    }
+
+    function render() {
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+        const grouped = shoppingList.reduce((acc, item) => {
+            if (!acc[item.shop]) acc[item.shop] = [];
+            acc[item.shop].push(item);
+            return acc;
+        }, {});
+
+        for (const shop in grouped) {
+            const header = document.createElement('div');
+            header.className = 'shop-header';
+            header.innerText = shop;
+            container.appendChild(header);
+
+            grouped[shop].forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.innerHTML = `
+                    <span><strong>${item.amount}</strong> ${item.name}</span>
+                    <div class="actions">
+                        <button class="edit" onclick="editItem(${item.id})">✎</button>
+                        <button class="delete" onclick="deleteItem(${item.id})">X</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+    }
+
+    function exportData() {
+        const dataStr = JSON.stringify(shoppingList);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const link = document.createElement('a');
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', 'liste.json');
+        link.click();
+    }
+
+    function importData(event) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            shoppingList = JSON.parse(e.target.result);
+            saveToBrowser();
+        };
+        reader.readAsText(event.target.files[0]);
+    }
+
+    render();
+</script>
+</body>
+</html>

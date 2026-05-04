@@ -1,0 +1,21 @@
+{
+  "name": "Einkaufsliste Pro",
+  "short_name": "Einkauf",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f4f4f9",
+  "theme_color": "#28a745",
+  "description": "Deine strukturierte Einkaufsliste",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/28a745/ffffff?text=🛒",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/28a745/ffffff?text=🛒",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
