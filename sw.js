@@ -1,4 +1,4 @@
-const CACHE_NAME = 'einkauf-v2'; // Version erhöht für Updates
+const CACHE_NAME = 'einkauf-v3'; // Version erhöht für Updates
 const ASSETS = [
   './',
   './index.html',
