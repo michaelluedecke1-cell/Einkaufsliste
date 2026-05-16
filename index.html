@@ -54,18 +54,19 @@
                 <option value="Bio-Markt">Bio-Markt</option>
                 <option value="Bauhaus">Bauhaus</option>
                 <option value="tegut">tegut</option>
+                <option value="Bio-Markt">Apotheke</option>
                 <option value="Sonstiges">Sonstiges</option>
             </select>
         </div>
         <button class="btn-add" onclick="addItem()">Hinzufügen</button>
     </div>
     <div id="list-container"></div>
-    <button class="btn-share" onclick="shareList()">📤 Liste teilen (WhatsApp/Text)</button>
+    <button class="btn-share" onclick="shareList()">📤 Liste senden /Text</button>
     <hr>
     <div class="storage-section">
-        <h3 style="margin-top: 0;">💾 Liste Verwalten</h3>
-        <button class="btn-save" onclick="exportData()">Export als Datei</button>
-        <label for="importFile" class="btn-load">Import aus Datei</label>
+        <h3 style="margin-top: 0;">💾 Liste Backup</h3>
+        <button class="btn-save" onclick="exportData()">Backup erstellen</button>
+        <label for="importFile" class="btn-load">Backup laden</label>
         <input type="file" id="importFile" style="display:none" onchange="importData(event)">
     </div>
 </div>
