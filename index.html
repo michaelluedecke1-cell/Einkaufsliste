@@ -5,146 +5,995 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Einkaufsliste Pro</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#28a745">
+    <meta name="theme-color" content="#10b981">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Einkauf">
     
     <style>
-        /* Deine Styles bleiben gleich, ich füge nur eins hinzu: */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: #f4f4f9; padding: 20px; max-width: 600px; margin: auto; 
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --whatsapp-grad: linear-gradient(135deg, #25D366, #128C7E);
+            --secondary: #6366f1;
+            --secondary-hover: #4f46e5;
+            --input-bg: #f9fafb;
+            --header-shop: #ecfdf5;
+            --modal-overlay: rgba(0, 0, 0, 0.5);
+            --edit-btn-bg: #f3f4f6;
+            --edit-btn-text: #4b5563;
         }
-        /* ... (Rest deiner Styles wie gehabt) ... */
-        .item-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #eee; padding: 12px 0; }
-        .shop-header { background: #e9ecef; padding: 8px 10px; font-weight: bold; margin-top: 15px; border-radius: 4px; color: #444; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .row { display: flex; gap: 5px; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; flex: 1; }
-        button { cursor: pointer; padding: 12px; border: none; border-radius: 4px; transition: 0.2s; font-weight: bold; }
-        .btn-add { background: #28a745; color: white; width: 100%; }
-        .btn-share { background: #25D366; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
-        .btn-save { background: #007bff; color: white; margin-top: 10px; width: 100%; }
-        .btn-load { background: #6c757d; color: white; display: block; padding: 12px; border-radius: 4px; cursor: pointer; text-align: center; margin-top: 10px; }
-        .delete { background: #dc3545; color: white; }
-        .edit { background: #ffc107; color: black; }
-        hr { margin: 25px 0; border: 0; border-top: 2px dashed #eee; }
-        .storage-section { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; }
-        .actions button { font-size: 14px; margin-left: 5px; padding: 8px 12px; border-radius: 4px; }
+
+        /* Automatischer Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --card-bg: #1f2937;
+                --text: #f9fafb;
+                --text-light: #9ca3af;
+                --border: #374151;
+                --input-bg: #111827;
+                --header-shop: #064e3b;
+                --primary: #34d399;
+                --modal-overlay: rgba(0, 0, 0, 0.7);
+                --edit-btn-bg: #374151;
+                --edit-btn-text: #d1d5db;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            padding: 12px; 
+            max-width: 500px; 
+            margin: auto; 
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.4;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 18px; 
+            border-radius: 14px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+            transition: background 0.3s;
+        }
+
+        .tabs {
+            display: flex;
+            background: #e5e7eb;
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        @media (prefers-color-scheme: dark) {
+            .tabs { background: #111827; }
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            color: var(--text-light);
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--text);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        h2 { 
+            font-size: 20px; 
+            font-weight: 700;
+            color: var(--text); 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-widgets {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .digital-clock {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            background: var(--input-bg);
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            letter-spacing: 0.5px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-wake-toggle {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .btn-wake-toggle.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+        }
+
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            position: relative;
+        }
+
+        .row { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center;
+        }
+
+        input { 
+            padding: 11px 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            font-size: 14px; 
+            background: var(--input-bg);
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Schicker, wie ein Dropdown aussehender Button für das Bottom-Sheet */
+        .shop-selector-trigger {
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text);
+            width: 62%;
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .shop-selector-trigger::after {
+            content: "";
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-light);
+            margin-left: 8px;
+        }
+
+        .input-amt-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 38%;
+            height: 41px;
+            padding: 2px;
+        }
+
+        .input-amt-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-amt-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            min-width: 20px;
+            text-align: center;
+        }
+
+        button { 
+            font-family: inherit;
+            cursor: pointer; 
+            padding: 11px; 
+            border: none; 
+            border-radius: 8px; 
+            transition: all 0.2s; 
+            font-weight: 600; 
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-add { 
+            background: var(--primary); 
+            color: white; 
+            width: 100%; 
+        }
+
+        .btn-share { 
+            background: var(--whatsapp-grad); 
+            color: white; 
+            width: 100%; 
+            font-size: 15px;
+            box-shadow: 0 4px 10px rgba(18, 140, 126, 0.2);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn-clear {
+            background: #fee2e2;
+            color: var(--danger);
+            font-size: 14px;
+            padding: 12px;
+            width: 100%;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        @media (prefers-color-scheme: dark) {
+            .btn-clear { background: #7f1d1d; color: #fca5a5; }
+        }
+
+        #list-container {
+            margin-top: 4px;
+        }
+
+        .shop-header { 
+            background: var(--header-shop); 
+            padding: 4px 10px; 
+            font-weight: 700; 
+            font-size: 12px; 
+            margin-top: 16px; 
+            border-radius: 12px; 
+            color: var(--primary-hover); 
+            display: inline-block;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .shop-header { color: #34d399; }
+        }
+
+        .shop-header.shop-done {
+            background: #e5e7eb;
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+        @media (prefers-color-scheme: dark) {
+            .shop-header.shop-done { background: #374151; }
+        }
+
+        .item-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: transparent; 
+            border-bottom: 1px solid var(--border); 
+            padding: 10px 2px; 
+            transition: opacity 0.2s ease;
+        }
+        
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            font-size: 14px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .item-info.checked span {
+            text-decoration: line-through;
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+
+        .item-info.checked .item-amount {
+            background: var(--border);
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+
+        .checkbox-custom {
+            width: 18px; 
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: var(--card-bg);
+        }
+
+        .item-info.checked .checkbox-custom {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .item-info.checked .checkbox-custom::after {
+            content: "✓";
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .item-amount {
+            color: var(--primary-hover);
+            font-weight: 600;
+            background: var(--header-shop);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        @media (prefers-color-scheme: dark) {
+            .item-amount { color: #34d399; }
+        }
+
+        .amt-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px; 
+            margin-right: 12px;
+        }
+
+        .amt-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 26px; 
+            height: 26px;
+            font-size: 14px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .actions button.edit { 
+            font-size: 11px; 
+            width: 26px;     
+            height: 26px;
+            padding: 0; 
+            border-radius: 50%;
+            background: var(--edit-btn-bg); 
+            color: var(--edit-btn-text);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .storage-section { 
+            background: var(--input-bg); 
+            padding: 16px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .storage-section h3 {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .storage-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-save { background: var(--secondary); color: white; flex: 1; font-size: 13px; padding: 11px; }
+
+        .btn-load { 
+            background: #e5e7eb; 
+            color: #1f2937; 
+            flex: 1; 
+            padding: 11px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            text-align: center; 
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (prefers-color-scheme: dark) {
+            .btn-load { background: #374151; color: #f9fafb; border: 1px solid var(--border); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 16px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal-save {
+            background: var(--primary);
+            color: white;
+            flex: 2;
+        }
+
+        .btn-modal-delete {
+            background: #fee2e2;
+            color: var(--danger);
+            flex: 1;
+        }
+        @media (prefers-color-scheme: dark) {
+            .btn-modal-delete { background: #7f1d1d; color: #fca5a5; }
+        }
+
+        /* NEU: MODERNE BOTTOM-SHEET AUSWAHLLISTE FÜR GESCHÄFTE */
+        .bottom-sheet-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay);
+            display: none;
+            justify-content: center;
+            align-items: flex-end; /* Schiebt das Menü nach ganz unten */
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .bottom-sheet-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .bottom-sheet-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px 16px 30px 16px;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
+            transform: translateY(100%); /* Startet außerhalb des Bildschirms */
+            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bottom-sheet-overlay.open .bottom-sheet-card {
+            transform: translateY(0);
+        }
+
+        .bottom-sheet-header {
+            font-size: 16px;
+            font-weight: 700;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text);
+            position: relative;
+        }
+
+        .bottom-sheet-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sheet-item {
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: background 0.15s;
+        }
+
+        .sheet-item:active {
+            background: var(--input-bg);
+        }
+
+        /* Styling für die ausgewählte Option im Sheet */
+        .sheet-item.selected {
+            background: var(--header-shop);
+            color: var(--primary-hover);
+        }
+        @media (prefers-color-scheme: dark) {
+            .sheet-item.selected { color: #34d399; }
+        }
+
+        .sheet-item.selected::after {
+            content: "✓";
+            font-weight: bold;
+            font-size: 16px;
+        }
     </style>
 </head>
-<body>
+<body id="body">
 
 <div class="card">
-    <h2>🛒 Meine Einkaufsliste</h2>
-    <div class="input-group">
-        <input type="text" id="item" placeholder="Produkt (z.B. Magerquark)">
-        <div class="row">
-            <input type="text" id="amount" placeholder="Menge" style="width: 30%;">
-            <select id="shop">
-                <option value="Aldi">Aldi</option>
-                <option value="Rewe">Rewe</option>
-                <option value="Edeka">Edeka</option>
-                <option value="Rossmann">Rossmann</option>
-                <option value="Metzger">Metzger</option>
-                <option value="Amazon">Amazon</option>
-                <option value="Bauhaus">Bauhaus</option>
-                <option value="tegut">tegut</option>
-                <option value="Apotheke">Apotheke</option>
-                <option value="Sonstiges">Sonstiges</option>
-            </select>
-        </div>
-        <button class="btn-add" onclick="addItem()">Hinzufügen</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('list-tab', this)">🛒 Liste</button>
+        <button class="tab-btn" onclick="switchTab('options-tab', this)">⚙️ Optionen</button>
     </div>
-    <div id="list-container"></div>
-    <button class="btn-share" onclick="shareList()">📤 Liste senden /Text</button>
-    <hr>
-    <div class="storage-section">
-        <h3 style="margin-top: 0;">💾 Liste Backup</h3>
-        <button class="btn-save" onclick="exportData()">Backup erstellen</button>
-        <label for="importFile" class="btn-load">Backup laden</label>
-        <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+    
+    <div id="list-tab" class="tab-content active">
+        <div class="header-row">
+            <h2>🛒 Einkaufsliste</h2>
+            <div class="header-widgets">
+                <div class="digital-clock" id="clock-display">00:00</div>
+                <button class="btn-wake-toggle" id="wakeLockBtn" onclick="toggleWakeLockFromBtn()" title="Bildschirm anlassen">📱</button>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="item" placeholder="Produkt (z.B. Magerquark)" list="suggestions">
+            <datalist id="suggestions"></datalist>
+            
+            <div class="row">
+                <div class="input-amt-control">
+                    <button class="input-amt-btn" onclick="changeInputAmount(-1)">−</button>
+                    <div class="input-amt-value" id="input-amt-display">1</div>
+                    <button class="input-amt-btn" onclick="changeInputAmount(1)">+</button>
+                </div>
+
+                <div class="shop-selector-trigger" id="shopTrigger" onclick="openShopSheet('main')">Aldi</div>
+            </div>
+            <button class="btn-add" onclick="addItem()">Hinzufügen</button>
+        </div>
+
+        <div id="list-container"></div>
+    </div>
+    
+    <div id="options-tab" class="tab-content">
+        <h2>⚙️ Optionen & Teilen</h2>
+        
+        <button class="btn-share" onclick="shareList()">💬 Liste via WhatsApp senden</button>
+        
+        <div class="storage-section">
+            <h3>💾 Daten-Backup</h3>
+            <div class="storage-buttons">
+                <button class="btn-save" onclick="exportData()">Backup erstellen</button>
+                <label for="importFile" class="btn-load">Backup laden</label>
+                <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+            </div>
+        </div>
+
+        <button id="clear-btn" class="btn-clear" onclick="clearList()" style="display: none;">🗑️ Ganze Liste leeren</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editModal" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span>Produkt bearbeiten</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-form-group">
+            <input type="text" id="editItemName" placeholder="Produktname">
+            <input type="text" id="editItemAmount" placeholder="Menge">
+            <div class="shop-selector-trigger" id="modalShopTrigger" onclick="openShopSheet('modal')" style="width: 100%;">Aldi</div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-delete" id="btnModalDelete">Löschen</button>
+            <button class="btn-modal-save" id="btnModalSave">Speichern</button>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-sheet-overlay" id="shopSheet" onclick="closeShopSheet()">
+    <div class="bottom-sheet-card" onclick="event.stopPropagation()">
+        <div class="bottom-sheet-header">Geschäft auswählen</div>
+        <div class="bottom-sheet-list" id="sheetListContainer">
+            </div>
     </div>
 </div>
 
 <script>
     let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
+    let itemHistory = JSON.parse(localStorage.getItem('myItemHistory')) || [];
+    
+    // Standardmäßig ausgewählte Läden für die Eingaben merken
+    let selectedMainShop = "Aldi";
+    let selectedModalShop = "Aldi";
+    let currentSheetTarget = "main"; // 'main' oder 'modal'
+    
+    let currentInputAmount = 1;
+    let editingItemId = null;
+    
+    let wakeLock = null;
+    let wakeLockEnabled = false;
 
-    // Service Worker Registrierung (Verbessert)
+    // Feste Liste der Geschäfte (Laufweg)
+    const shopOrder = ["Aldi", "Rewe", "Edeka", "tegut", "Rossmann", "Metzger", "Apotheke", "Bauhaus", "Amazon", "Sonstiges"];
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('Service Worker registriert!');
-                    // Prüfen auf Updates
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if(confirm("Neue App-Version verfügbar. Jetzt laden?")) {
-                                    window.location.reload();
-                                }
-                            }
-                        };
-                    };
-                })
-                .catch(err => console.log('SW Fehler', err));
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Fehler', err));
         });
     }
 
-    // Deine restlichen Funktionen (addItem, deleteItem, editItem, render, etc.) 
-    // bleiben gleich, sie funktionieren bereits hervorragend mit LocalStorage!
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock-display').innerText = 
+            String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function switchTab(tabId, buttonElement) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        buttonElement.classList.add('active');
+    }
+
+    function changeInputAmount(change) {
+        currentInputAmount += change;
+        if (currentInputAmount < 1) currentInputAmount = 1;
+        document.getElementById('input-amt-display').innerText = currentInputAmount;
+    }
+
+    /* NEU: BOTOM-SHEET STEUERUNG */
+    function openShopSheet(target) {
+        currentSheetTarget = target;
+        const currentSelected = target === 'main' ? selectedMainShop : selectedModalShop;
+        
+        const listContainer = document.getElementById('sheetListContainer');
+        listContainer.innerHTML = '';
+        
+        // Liste dynamisch aufbauen
+        shopOrder.forEach(shop => {
+            const item = document.createElement('div');
+            item.className = 'sheet-item' + (shop === currentSelected ? ' selected' : '');
+            item.innerText = shop;
+            item.onclick = () => selectShopFromSheet(shop);
+            listContainer.appendChild(item);
+        });
+        
+        document.getElementById('shopSheet').classList.add('open');
+        document.getElementById('body').classList.add('modal-open');
+    }
+
+    function closeShopSheet() {
+        document.getElementById('shopSheet').classList.remove('open');
+        if (!document.getElementById('editModal').classList.contains('open')) {
+            document.getElementById('body').classList.remove('modal-open');
+        }
+    }
+
+    function selectShopFromSheet(shop) {
+        if (currentSheetTarget === 'main') {
+            selectedMainShop = shop;
+            document.getElementById('shopTrigger').innerText = shop;
+        } else {
+            selectedModalShop = shop;
+            document.getElementById('modalShopTrigger').innerText = shop;
+        }
+        closeShopSheet();
+    }
     
     function saveToBrowser() {
         localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
         render();
     }
 
+    async function toggleWakeLockFromBtn() {
+        const btn = document.getElementById('wakeLockBtn');
+        wakeLockEnabled = !wakeLockEnabled;
+        
+        if (wakeLockEnabled) {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    btn.classList.add('active');
+                } else {
+                    alert("Wachhalten wird nicht unterstützt.");
+                    wakeLockEnabled = false;
+                }
+            } catch (err) {
+                wakeLockEnabled = false;
+            }
+        } else {
+            if (wakeLock !== null) {
+                await wakeLock.release();
+                wakeLock = null;
+            }
+            btn.classList.remove('active');
+        }
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible' && wakeLockEnabled) {
+            wakeLock = await navigator.wakeLock.request('screen');
+        }
+    });
+
     function addItem() {
         const nameInput = document.getElementById('item');
-        const amountInput = document.getElementById('amount');
-        const shopSelect = document.getElementById('shop');
-        if (!nameInput.value) return;
+        if (!nameInput.value.trim()) return;
+
+        const productName = nameInput.value.trim();
 
         shoppingList.push({ 
             id: Date.now(), 
-            name: nameInput.value, 
-            amount: amountInput.value, 
-            shop: shopSelect.value 
+            name: productName, 
+            amount: currentInputAmount.toString(), 
+            shop: selectedMainShop, // Nutzt den ausgewählten Sheet-Wert
+            checked: false 
         });
 
+        if (!itemHistory.includes(productName)) {
+            itemHistory.push(productName);
+            localStorage.setItem('myItemHistory', JSON.stringify(itemHistory));
+        }
+
         nameInput.value = '';
-        amountInput.value = '';
+        currentInputAmount = 1; 
+        document.getElementById('input-amt-display').innerText = currentInputAmount;
+        
         saveToBrowser();
+        updateSuggestions();
     }
 
-    function deleteItem(id) {
-        if(confirm("Löschen?")) {
-            shoppingList = shoppingList.filter(item => item.id !== id);
+    function toggleCheck(id) {
+        const item = shoppingList.find(i => i.id === id);
+        if (item) {
+            item.checked = !item.checked;
             saveToBrowser();
         }
     }
 
-    function editItem(id) {
+    function changeAmount(id, direction) {
         const item = shoppingList.find(i => i.id === id);
-        const newName = prompt("Produkt:", item.name);
-        const newAmount = prompt("Menge:", item.amount);
-        const newShop = prompt("Geschäft:", item.shop);
+        if (!item) return;
+
+        let currentAmountStr = item.amount || "1";
+        let match = currentAmountStr.match(/^(\d+)(.*)$/);
+        let number = match ? parseInt(match[1], 10) : 1;
+        let suffix = match ? match[2] : " " + currentAmountStr;
+
+        number = direction === 'plus' ? number + 1 : number - 1;
+
+        if (number <= 0) {
+            shoppingList = shoppingList.filter(i => i.id !== id);
+        } else {
+            item.amount = number + suffix;
+        }
+        saveToBrowser();
+    }
+
+    function openEditModal(id) {
+        const item = shoppingList.find(i => i.id === id);
+        if (!item) return;
         
-        if (newName !== null) {
+        editingItemId = id;
+        
+        document.getElementById('editItemName').value = item.name;
+        document.getElementById('editItemAmount').value = item.amount;
+        
+        // Shop für das Modal setzen und den Button-Text aktualisieren
+        selectedModalShop = item.shop;
+        document.getElementById('modalShopTrigger').innerText = item.shop;
+        
+        const modal = document.getElementById('editModal');
+        modal.classList.add('open');
+        document.getElementById('body').classList.add('modal-open');
+        
+        document.getElementById('btnModalSave').onclick = saveModalChanges;
+        document.getElementById('btnModalDelete').onclick = deleteItemFromModal;
+    }
+
+    function closeModal(event) {
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('open');
+        document.getElementById('body').classList.remove('modal-open');
+        editingItemId = null;
+    }
+
+    function saveModalChanges() {
+        if (!editingItemId) return;
+        
+        const item = shoppingList.find(i => i.id === editingItemId);
+        if (!item) return;
+        
+        const newName = document.getElementById('editItemName').value.trim();
+        const newAmount = document.getElementById('editItemAmount').value.trim();
+        
+        if (newName) {
             item.name = newName;
             item.amount = newAmount;
-            item.shop = newShop;
+            item.shop = selectedModalShop; // Speichert den im Modal gewählten Shop ab
+            
             saveToBrowser();
+            closeModal();
+        } else {
+            alert("Produktname darf nicht leer sein!");
+        }
+    }
+
+    function deleteItemFromModal() {
+        if (!editingItemId) return;
+        
+        if (confirm("Möchtest du dieses Produkt wirklich von der Liste löschen?")) {
+            shoppingList = shoppingList.filter(i => i.id !== editingItemId);
+            saveToBrowser();
+            closeModal();
+        }
+    }
+
+    function clearList() {
+        if (confirm("Ganze Liste leeren?")) {
+            shoppingList = [];
+            saveToBrowser();
+            switchTab('list-tab', document.querySelectorAll('.tab-btn')[0]);
         }
     }
 
     function shareList() {
-        if (shoppingList.length === 0) return alert("Leer!");
+        if (shoppingList.length === 0) return alert("Die Liste ist leer!");
         let text = "🛒 *Meine Einkaufsliste*\n\n";
         const grouped = shoppingList.reduce((acc, item) => {
             if (!acc[item.shop]) acc[item.shop] = [];
@@ -152,29 +1001,44 @@
             return acc;
         }, {});
 
-        for (const shop in grouped) {
+        Object.keys(grouped).sort((a,b) => shopOrder.indexOf(a) - shopOrder.indexOf(b)).forEach(shop => {
             text += `*${shop.toUpperCase()}*\n`;
             grouped[shop].forEach(item => {
-                text += `- ${item.amount ? item.amount + ' ' : ''}${item.name}\n`;
+                text += `${item.checked ? "✅ " : "- "}${item.amount ? item.amount + ' ' : ''}${item.name}\n`;
             });
             text += "\n";
-        }
+        });
 
         if (navigator.share) {
-            navigator.share({ title: 'Einkauf', text: text });
+            navigator.share({ title: 'Einkaufsliste', text: text }).catch(() => fallbackWhatsAppShare(text));
         } else {
-            navigator.clipboard.writeText(text);
-            alert("In Zwischenablage kopiert!");
+            fallbackWhatsAppShare(text);
         }
+    }
+
+    function fallbackWhatsAppShare(text) {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function updateSuggestions() {
+        const datalist = document.getElementById('suggestions');
+        datalist.innerHTML = '';
+        itemHistory.forEach(h => {
+            const op = document.createElement('option'); op.value = h; datalist.appendChild(op);
+        });
     }
 
     function render() {
         const container = document.getElementById('list-container');
+        const clearBtn = document.getElementById('clear-btn');
         container.innerHTML = '';
-        const sortedShops = Object.keys(shoppingList.reduce((acc, item) => {
-            acc[item.shop] = true;
-            return acc;
-        }, {})).sort();
+        
+        if (shoppingList.length === 0) {
+            clearBtn.style.display = 'none';
+            container.innerHTML = '<p style="text-align: center; color: var(--text-light); font-size: 14px; margin-top: 20px;">Die Liste ist leer. 📝</p>';
+            return;
+        }
+        clearBtn.style.display = 'block';
 
         const grouped = shoppingList.reduce((acc, item) => {
             if (!acc[item.shop]) acc[item.shop] = [];
@@ -182,20 +1046,29 @@
             return acc;
         }, {});
 
-        sortedShops.forEach(shop => {
+        Object.keys(grouped).sort((a,b) => shopOrder.indexOf(a) - shopOrder.indexOf(b)).forEach(shop => {
+            const allChecked = grouped[shop].every(item => item.checked);
             const header = document.createElement('div');
-            header.className = 'shop-header';
-            header.innerText = shop;
+            header.className = 'shop-header' + (allChecked ? ' shop-done' : '');
+            header.innerText = allChecked ? `✓ ${shop}` : shop;
             container.appendChild(header);
 
-            grouped[shop].forEach(item => {
+            grouped[shop].sort((a, b) => a.checked - b.checked).forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'item-row';
+                
                 row.innerHTML = `
-                    <span><strong>${item.amount}</strong> ${item.name}</span>
+                    <div class="item-info ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})">
+                        <div class="checkbox-custom"></div>
+                        <span>${item.name}</span>
+                    </div>
                     <div class="actions">
-                        <button class="edit" onclick="editItem(${item.id})">✎</button>
-                        <button class="delete" onclick="deleteItem(${item.id})">X</button>
+                        <div class="amt-control">
+                            <button class="amt-btn" onclick="changeAmount(${item.id}, 'minus')">−</button>
+                            <span class="item-amount">${item.amount}</span>
+                            <button class="amt-btn" onclick="changeAmount(${item.id}, 'plus')">+</button>
+                        </div>
+                        <button class="edit" onclick="openEditModal(${item.id})">✎</button>
                     </div>
                 `;
                 container.appendChild(row);
@@ -204,10 +1077,8 @@
     }
 
     function exportData() {
-        const dataStr = JSON.stringify(shoppingList);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
         const link = document.createElement('a');
-        link.setAttribute('href', dataUri);
+        link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(shoppingList)));
         link.setAttribute('download', 'liste.json');
         link.click();
     }
@@ -218,12 +1089,14 @@
             try {
                 shoppingList = JSON.parse(e.target.result);
                 saveToBrowser();
-            } catch(err) { alert("Fehler beim Import!"); }
+                switchTab('list-tab', document.querySelectorAll('.tab-btn')[0]);
+            } catch(err) { alert("Fehler!"); }
         };
         reader.readAsText(event.target.files[0]);
     }
 
     render();
+    updateSuggestions();
 </script>
 </body>
 </html>
