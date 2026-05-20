@@ -210,7 +210,6 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
-        /* Schicker, wie ein Dropdown aussehender Button für das Bottom-Sheet */
         .shop-selector-trigger {
             padding: 11px 12px;
             border: 1px solid var(--border);
@@ -584,14 +583,13 @@
             .btn-modal-delete { background: #7f1d1d; color: #fca5a5; }
         }
 
-        /* NEU: MODERNE BOTTOM-SHEET AUSWAHLLISTE FÜR GESCHÄFTE */
         .bottom-sheet-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--modal-overlay);
             display: none;
             justify-content: center;
-            align-items: flex-end; /* Schiebt das Menü nach ganz unten */
+            align-items: flex-end; 
             z-index: 1100;
             opacity: 0;
             transition: opacity 0.25s ease;
@@ -610,7 +608,7 @@
             border-top-right-radius: 20px;
             padding: 20px 16px 30px 16px;
             box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
-            transform: translateY(100%); /* Startet außerhalb des Bildschirms */
+            transform: translateY(100%); 
             transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
             max-height: 80vh;
             display: flex;
@@ -655,7 +653,6 @@
             background: var(--input-bg);
         }
 
-        /* Styling für die ausgewählte Option im Sheet */
         .sheet-item.selected {
             background: var(--header-shop);
             color: var(--primary-hover);
@@ -746,8 +743,7 @@
 <div class="bottom-sheet-overlay" id="shopSheet" onclick="closeShopSheet()">
     <div class="bottom-sheet-card" onclick="event.stopPropagation()">
         <div class="bottom-sheet-header">Geschäft auswählen</div>
-        <div class="bottom-sheet-list" id="sheetListContainer">
-            </div>
+        <div class="bottom-sheet-list" id="sheetListContainer"></div>
     </div>
 </div>
 
@@ -755,10 +751,9 @@
     let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
     let itemHistory = JSON.parse(localStorage.getItem('myItemHistory')) || [];
     
-    // Standardmäßig ausgewählte Läden für die Eingaben merken
     let selectedMainShop = "Aldi";
     let selectedModalShop = "Aldi";
-    let currentSheetTarget = "main"; // 'main' oder 'modal'
+    let currentSheetTarget = "main";
     
     let currentInputAmount = 1;
     let editingItemId = null;
@@ -766,7 +761,6 @@
     let wakeLock = null;
     let wakeLockEnabled = false;
 
-    // Feste Liste der Geschäfte (Laufweg)
     const shopOrder = ["Aldi", "Rewe", "Edeka", "tegut", "Rossmann", "Metzger", "Apotheke", "Bauhaus", "Amazon", "Sonstiges"];
 
     if ('serviceWorker' in navigator) {
@@ -796,7 +790,6 @@
         document.getElementById('input-amt-display').innerText = currentInputAmount;
     }
 
-    /* NEU: BOTOM-SHEET STEUERUNG */
     function openShopSheet(target) {
         currentSheetTarget = target;
         const currentSelected = target === 'main' ? selectedMainShop : selectedModalShop;
@@ -804,7 +797,6 @@
         const listContainer = document.getElementById('sheetListContainer');
         listContainer.innerHTML = '';
         
-        // Liste dynamisch aufbauen
         shopOrder.forEach(shop => {
             const item = document.createElement('div');
             item.className = 'sheet-item' + (shop === currentSelected ? ' selected' : '');
@@ -881,7 +873,7 @@
             id: Date.now(), 
             name: productName, 
             amount: currentInputAmount.toString(), 
-            shop: selectedMainShop, // Nutzt den ausgewählten Sheet-Wert
+            shop: selectedMainShop, 
             checked: false 
         });
 
@@ -934,7 +926,6 @@
         document.getElementById('editItemName').value = item.name;
         document.getElementById('editItemAmount').value = item.amount;
         
-        // Shop für das Modal setzen und den Button-Text aktualisieren
         selectedModalShop = item.shop;
         document.getElementById('modalShopTrigger').innerText = item.shop;
         
@@ -965,7 +956,7 @@
         if (newName) {
             item.name = newName;
             item.amount = newAmount;
-            item.shop = selectedModalShop; // Speichert den im Modal gewählten Shop ab
+            item.shop = selectedModalShop;
             
             saveToBrowser();
             closeModal();
@@ -1076,10 +1067,24 @@
         });
     }
 
+    /* AKTUALISIERT: Dynamischer Dateiname mit lokalem Datum und Uhrzeit */
     function exportData() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        // Zusammengesetzter Name: liste_JJJJ-MM-TT_HH-MM.json
+        const filename = `liste_${year}-${month}-${day}_${hours}-${minutes}.json`;
+
+        const dataStr = JSON.stringify(shoppingList);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        
         const link = document.createElement('a');
-        link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(shoppingList)));
-        link.setAttribute('download', 'liste.json');
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', filename);
         link.click();
     }
 
