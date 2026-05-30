@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Einkauf">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <style>
         :root {
@@ -763,9 +764,31 @@
 
     const shopOrder = ["Aldi", "Rewe", "Edeka", "tegut", "Rossmann", "Metzger", "Apotheke", "Bauhaus", "Amazon", "Sonstiges"];
 
+   // === 1. PERSISTENT STORAGE FUNKTION ===
+    async function requestPersistentStorage() {
+        // Prüfen, ob der Browser die API unterstützt
+        if (navigator.storage && navigator.storage.persist) {
+            try {
+                const isPersisted = await navigator.storage.persist();
+                console.log(`Persistenter Speicher gewährt: ${isPersisted}`);
+                
+                // Optional: Du könntest hier auch ein kleines UI-Feedback geben
+                // if (!isPersisted) { console.log("Speicher könnte bei Platzmangel gelöscht werden."); }
+            } catch (error) {
+                console.error("Fehler bei der Anfrage für persistenten Speicher:", error);
+            }
+        } else {
+            console.log("Persistent Storage API wird von diesem Browser nicht unterstützt.");
+        }
+    }
+
+    // === 2. SERVICE WORKER & STORAGE AUFRUF ===
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Fehler', err));
+            
+            // Speicher-Anfrage direkt nach dem Laden der App ausführen
+            requestPersistentStorage();
         });
     }
 
