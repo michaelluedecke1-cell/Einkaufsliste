@@ -1,9 +1,8 @@
-const CACHE_NAME = 'einkauf-v4'; // Version erhöht
+const CACHE_NAME = 'einkauf-v5'; // Wichtig: v5!
 const ASSETS = [
-  './',
   './index.html',
   './manifest.json',
-  './shopping_22120.png' // Dein neues Icon ist jetzt im Cache!
+  './shopping_22120.png'
 ];
 
 // Installation: Dateien in den Cache laden
