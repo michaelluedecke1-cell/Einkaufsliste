@@ -1,9 +1,9 @@
-const CACHE_NAME = 'einkauf-v3'; // Version erhöht für Updates
+const CACHE_NAME = 'einkauf-v4'; // Version erhöht
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  'https://cdn-icons-png.flaticon.com/192/2331/2331970.png' // Icon mit cachen!
+  './shopping_22120.png' // Dein neues Icon ist jetzt im Cache!
 ];
 
 // Installation: Dateien in den Cache laden
